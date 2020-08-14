@@ -1,7 +1,8 @@
-package com.rompos.deactivator
+package com.rompos.deactivator.mpp
 
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import android.content.Context
+import com.rompos.deactivator.Server
 
 lateinit var appContext: Context
 

@@ -1,6 +1,7 @@
-package com.rompos.deactivator
+package com.rompos.deactivator.mpp
 
-import com.squareup.sqldelight.Query
+import com.rompos.deactivator.Server
+import com.rompos.deactivator.Servers
 
 expect fun createDB(): Server
 
@@ -19,8 +20,12 @@ open class ServerRepository {
     }
 
     // Get Server by ID
-    fun get(id: Long): Query<Servers>? {
-        return serverQueries.selectServer(id)
+//    fun get(id: Long): Query<Servers>? {
+//        return serverQueries.selectServer(id)
+//    }
+
+    fun get(id: Long): Servers? {
+        return serverQueries.selectServer(id).executeAsOne()
     }
 
     // Update Server

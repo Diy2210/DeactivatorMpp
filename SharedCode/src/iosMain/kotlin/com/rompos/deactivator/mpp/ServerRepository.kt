@@ -1,5 +1,6 @@
-package com.rompos.deactivator
+package com.rompos.deactivator.mpp
 
+import com.rompos.deactivator.Server
 import com.squareup.sqldelight.drivers.native.NativeSqliteDriver
 
 actual fun createDB(): Server {

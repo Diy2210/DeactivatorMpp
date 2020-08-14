@@ -27,8 +27,8 @@ kotlin {
     sourceSets["commonMain"].dependencies {
         implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
         implementation("io.ktor:ktor-client-core:1.3.2")
-//        implementation("com.squareup.sqldelight:sqlite-driver:1.4.0")
-//        implementation("com.squareup.sqldelight:runtime-metadata:1.4.0")
+        implementation("com.squareup.sqldelight:runtime:1.4.0")
+        implementation ("com.squareup.sqldelight:sqlite-driver:1.4.0")
     }
 
     // Android Main

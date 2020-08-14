@@ -1,4 +1,9 @@
 package com.rompos.deactivator.models
 
-class PluginsResponseModel {
-}
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class PluginsResponseModel(
+    val success: Boolean,
+    val data: List<PluginViewModel>
+)
