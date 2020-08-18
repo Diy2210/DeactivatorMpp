@@ -8,19 +8,19 @@ import android.view.View
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import com.rompos.deactivator.R
-import com.rompos.deactivator.mpp.ServerRepository
-import com.rompos.deactivator.Servers
+import com.rompos.deactivator.app
 import com.rompos.deactivator.databinding.ActivityEditServerBinding
 import com.rompos.deactivator.helpers.Utils
 import com.rompos.deactivator.models.ServerFormViewModel
+import com.rompos.deactivator.repositories.ServersRepository
 import kotlinx.android.synthetic.main.activity_edit_server.*
 import kotlinx.coroutines.launch
+import org.kodein.di.erased.instance
 
 class EditServerActivity : AppCompatActivity() {
 
-    lateinit var repository: ServerRepository
+    private val repository: ServersRepository by app.kodein.instance()
     private var serverFormViewModel = ServerFormViewModel()
-//    private var servers = Servers()
     private var serverId: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,9 +33,7 @@ class EditServerActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 binding.progressBar.visibility = View.VISIBLE
                 repository.get(serverId).let { server ->
-                    if (server != null) {
-                        serverFormViewModel.setForm(server)
-                    }
+                    serverFormViewModel.setForm(server)
                 }
             }.also {
                 binding.progressBar.visibility = View.GONE
@@ -54,28 +52,41 @@ class EditServerActivity : AppCompatActivity() {
 //            } else {
 //                Utils.snackMsg(editView, getString(R.string.error_empty_field))
 //            }
-            val title = serverTitle.text.toString()
-            val url = serverUrl.text.toString()
-            val token = serverToken.text.toString()
 
-            val server = Servers(0, title, url, token)
+//            val title = serverTitle.text.toString()
+//            val url = serverUrl.text.toString()
+//            val token = serverToken.text.toString()
+//
+//            val server = Servers(0, title, url, token)
+//
+//            if (title.isEmpty() || url.isEmpty() || token.isEmpty()) {
+//                Utils.snackMsg(it, getString(R.string.error_empty_field))
+//            } else {
+//                lifecycleScope.launch {
+////                    showProgress(true)
+//                    try {
+//                        repository.insert(server)
+//                        println("//////////////" + repository.list())
+//                    } catch (e: Exception) {
+//                        Utils.snackMsg(it, e.message.toString())
+//                    }
+//                }.also {
+//                    setResult(Activity.RESULT_OK, Intent())
+//                    this.finish()
+//                }
+//            }
 
-            if (title.isEmpty() || url.isEmpty() || token.isEmpty()) {
-                Utils.snackMsg(it, getString(R.string.error_empty_field))
-            } else {
+            if (serverFormViewModel.isFormValid()) {
                 lifecycleScope.launch {
-//                    showProgress(true)
-                    try {
-                        repository.insert(server)
-                        println("//////////////" + repository.list())
-                    } catch (e: Exception) {
-                        Utils.snackMsg(it, e.message.toString())
-                    }
+                    saveRecord(serverFormViewModel)
                 }.also {
                     setResult(Activity.RESULT_OK, Intent())
-                    this.finish()
+                    finish()
                 }
+            } else {
+                Utils.snackMsg(editView, getString(R.string.error_empty_field))
             }
+
         }
 
         cancelBtn.setOnClickListener {
@@ -84,10 +95,10 @@ class EditServerActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveRecord(viewModel: Servers) {
+    private fun saveRecord(viewModel: ServerFormViewModel) {
         progressBar.visibility = View.VISIBLE
         try {
-            repository.insert(viewModel)
+            repository.save(serverId, viewModel.getModel(serverId))
         } catch (e: Exception) {
             Utils.snackMsg(editView, e.message.toString())
         } finally {

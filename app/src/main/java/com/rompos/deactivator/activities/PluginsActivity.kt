@@ -6,22 +6,24 @@ import android.view.View
 import androidx.lifecycle.lifecycleScope
 import com.rompos.deactivator.R
 import com.rompos.deactivator.Servers
-import com.rompos.deactivator.mpp.ServerRepository
 import com.rompos.deactivator.adapters.PluginsAdapter
-import com.rompos.deactivator.mpp.api.DeactivatorApi
 import com.rompos.deactivator.helpers.Utils
 import com.rompos.deactivator.models.PluginViewModel
 import com.rompos.deactivator.models.PluginsResponseModel
+import com.rompos.deactivator.api.DeactivatorApi
+import com.rompos.deactivator.app
+import com.rompos.deactivator.repositories.ServersRepository
 import io.ktor.client.features.ClientRequestException
 import kotlinx.android.synthetic.main.activity_plugins.*
 import kotlinx.coroutines.launch
-import kotlinx.serialization.UnstableDefault
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.parse
+import org.kodein.di.erased.instance
 
 class PluginsActivity : AppCompatActivity() {
 
-    lateinit var repository: ServerRepository
-    lateinit var currentServer: Servers
+    private val repository: ServersRepository by app.kodein.instance()
+    private lateinit var currentServer: Servers
     lateinit var token: String
     private var serverId: Long = 0
 
@@ -36,7 +38,7 @@ class PluginsActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repository.get(serverId).let { server ->
                 currentServer = server
-                supportActionBar?.title = server.title
+                supportActionBar?.title = server?.title
             }
         }.also {
             getPlugins()
@@ -51,9 +53,8 @@ class PluginsActivity : AppCompatActivity() {
 
     }
 
-    @OptIn(UnstableDefault::class)
     private fun generatePage(response: String) {
-        val resp = Json.parse(PluginsResponseModel.serializer(), response)
+        val resp = Json.decodeFromString(PluginsResponseModel.serializer(), response)
         if (resp.success) {
             plugins.adapter = PluginsAdapter(this, resp.data)
             plugins.visibility = View.VISIBLE
@@ -66,11 +67,14 @@ class PluginsActivity : AppCompatActivity() {
         lifecycleScope.launch {
             progressBar.visibility = View.VISIBLE
             try {
-                DeactivatorApi.getPlugins(currentServer).get().also { response ->
-                    generatePage(response)
-                }
+//                DeactivatorApi.also { response ->
+//                    generatePage(response)
+//                }
             } catch (e: ClientRequestException) {
-                intent.putExtra("message", e.response.status.value.toString() + " " + e.response.status.description)
+                intent.putExtra(
+                    "message",
+                    e.response.status.value.toString() + " " + e.response.status.description
+                )
                 setResult(MainActivity.CONNECTION_ERROR, intent)
                 finish()
             } catch (e: Exception) {
@@ -87,9 +91,9 @@ class PluginsActivity : AppCompatActivity() {
         lifecycleScope.launch {
             progressBar.visibility = View.VISIBLE
             try {
-                DeactivatorApi(currentServer).updateStatus(pluginViewModel, state).also { _ ->
-                    getPlugins()
-                }
+//                DeactivatorApi(currentServer).updateStatus(pluginViewModel, state).also { _ ->
+//                    getPlugins()
+//                }
             } catch (e: Exception) {
                 Utils.snackMsg(pluginsView, e.message.toString())
             }

@@ -3,6 +3,7 @@ package com.rompos.deactivator.models
 import androidx.databinding.BaseObservable
 import androidx.databinding.Bindable
 import com.rompos.deactivator.BR
+import com.rompos.deactivator.Server
 import com.rompos.deactivator.Servers
 
 class ServerFormViewModel : BaseObservable() {
@@ -44,5 +45,15 @@ class ServerFormViewModel : BaseObservable() {
 
     fun isFormValid() : Boolean {
         return !serverModel.title.isNullOrEmpty() and !serverModel.url.isNullOrEmpty() and !serverModel.token.isNullOrEmpty()
+    }
+
+    fun getModel(id: Long?) : Servers {
+        return serverModel.title?.let { serverModel.url?.let { it1 ->
+            serverModel.token?.let { it2 ->
+                Servers(id!!, it,
+                    it1, it2
+                )
+            }
+        } }!!
     }
 }

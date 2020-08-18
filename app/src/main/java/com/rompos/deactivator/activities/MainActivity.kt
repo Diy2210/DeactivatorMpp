@@ -9,11 +9,13 @@ import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
 import com.rompos.deactivator.R
 import com.rompos.deactivator.Servers
-import com.rompos.deactivator.mpp.ServerRepository
 import com.rompos.deactivator.adapters.ServersAdapter
+import com.rompos.deactivator.app
 import com.rompos.deactivator.helpers.Utils
+import com.rompos.deactivator.repositories.ServersRepository
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.launch
+import org.kodein.di.erased.instance
 
 class MainActivity : AppCompatActivity() {
 
@@ -23,9 +25,9 @@ class MainActivity : AppCompatActivity() {
         const val CONNECTION_ERROR = 2
     }
 
-    lateinit var repository: ServerRepository
+    private val repository: ServersRepository by app.kodein.instance()
     lateinit var adapter: ServersAdapter
-    lateinit var serversList: List<Servers>
+    private lateinit var serversList: List<Servers>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,7 +40,7 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             progressBar.visibility = View.VISIBLE
-            serversList = repository.list()
+            serversList = repository.getAll()
         }.also {
             adapter = ServersAdapter(
                 serversList,
@@ -73,8 +75,8 @@ class MainActivity : AppCompatActivity() {
                             .setCancelable(true)
                             .setPositiveButton(android.R.string.yes) { _, _ ->
                                 try {
-                                    repository.delete(item.id.toLong()).also {
-                                        adapter.items = repository.list()
+                                    repository.delete(item.id).also {
+                                        adapter.items = repository.getAll()
                                         adapter.notifyDataSetChanged()
                                         Utils.snackMsg(mainView, getString(R.string.deleted))
                                     }
@@ -94,7 +96,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         swipeContainer.setOnRefreshListener {
-            adapter.items = repository.list()
+            adapter.items = repository.getAll()
             adapter.notifyDataSetChanged()
             if (swipeContainer.isRefreshing) {
                 swipeContainer.isRefreshing = false
@@ -105,7 +107,7 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == EDITED && resultCode == Activity.RESULT_OK) {
-            adapter.items = repository.list()
+            adapter.items = repository.getAll()
             adapter.notifyDataSetChanged()
         } else if (requestCode == DETAILS && resultCode == CONNECTION_ERROR) {
             val message = data!!.getStringExtra("message")
